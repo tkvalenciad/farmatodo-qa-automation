@@ -1,0 +1,28 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (¡nunca commitear secretos!)
+.env
+.env.local
+.env.*.local
+
+# Reportes y artefactos generados por Playwright
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Artefactos temporales del documento de la prueba
+_extract/
+*.docx
