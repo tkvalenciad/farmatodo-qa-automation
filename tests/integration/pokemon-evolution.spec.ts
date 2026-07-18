@@ -26,10 +26,6 @@ test.describe('Integración PokéAPI — cadena de evoluciones', () => {
     const chainSpecies = flattenEvolutionChain(evolutionChain.chain);
     expect(chainSpecies.length).toBeGreaterThan(0);
 
-    logger.info(
-      `Cadena de evolución (orden natural): ${chainSpecies.map((s) => s.name).join(' -> ')}`,
-    );
-
     const evolutions: PokemonEvolution[] = [];
     for (const member of chainSpecies) {
       const detail = await test.step(`GET /pokemon/${member.name} (peso)`, () =>
