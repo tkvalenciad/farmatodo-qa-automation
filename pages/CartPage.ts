@@ -1,6 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { BasePage } from './BasePage';
-import type { ProductInfo } from './InventoryPage';
+import { BasePage, type ProductInfo } from './BasePage';
 
 export class CartPage extends BasePage {
   private readonly checkoutButton: Locator;
@@ -19,10 +18,7 @@ export class CartPage extends BasePage {
   async getProductInfo(productName: string): Promise<ProductInfo> {
     const item = this.cartItem(productName);
     await expect(item, `El producto "${productName}" no está en el carrito`).toBeVisible();
-
-    const name = (await item.getByTestId('inventory-item-name').textContent())?.trim() ?? '';
-    const price = (await item.getByTestId('inventory-item-price').textContent())?.trim() ?? '';
-    return { name, price };
+    return this.readProductInfo(item);
   }
 
   async checkout(): Promise<void> {

@@ -1,10 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { BasePage } from './BasePage';
-
-export interface ProductInfo {
-  name: string;
-  price: string;
-}
+import { BasePage, type ProductInfo } from './BasePage';
 
 export class InventoryPage extends BasePage {
   private readonly title: Locator;
@@ -31,10 +26,7 @@ export class InventoryPage extends BasePage {
   async getProductInfo(productName: string): Promise<ProductInfo> {
     const card = this.productCard(productName);
     await expect(card, `No se encontró el producto "${productName}" en el catálogo`).toBeVisible();
-
-    const name = (await card.getByTestId('inventory-item-name').textContent())?.trim() ?? '';
-    const price = (await card.getByTestId('inventory-item-price').textContent())?.trim() ?? '';
-    return { name, price };
+    return this.readProductInfo(card);
   }
 
   async addProductToCart(productName: string): Promise<void> {
