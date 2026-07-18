@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { env } from '../../config/env';
-import { logger } from '../../utils/logger';
 import { compareStringsAsc, mergeSort } from '../../utils/sorting';
 import { flattenEvolutionChain, PokeApiClient } from '../../utils/api/pokeApiClient';
 import type { PokemonEvolution } from '../../utils/api/pokemon.types';
@@ -43,7 +42,7 @@ test.describe('Integración PokéAPI — cadena de evoluciones', () => {
     const sorted = mergeSort(evolutions, (a, b) => compareStringsAsc(a.name, b.name));
 
     const output = sorted.map((p) => `${p.name} (peso: ${p.weight})`).join('\n');
-    logger.info(`Resultado ordenado alfabéticamente:\n${output}`);
+    console.log(`Resultado ordenado alfabéticamente:\n${output}`);
     await test.info().attach('evoluciones-ordenadas.txt', {
       body: output,
       contentType: 'text/plain',

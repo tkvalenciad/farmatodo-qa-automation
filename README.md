@@ -73,7 +73,6 @@ npm test
 │   └── CheckoutCompletePage.ts
 ├── utils/                        # Helpers reutilizables
 │   ├── sorting.ts                # Merge Sort propio (sin .sort() nativo)
-│   ├── logger.ts
 │   └── api/                      # Cliente + modelos + errores de la PokéAPI
 │       ├── pokeApiClient.ts
 │       ├── pokemon.types.ts
