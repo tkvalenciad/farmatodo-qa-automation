@@ -1,55 +1,28 @@
 # Decisiones Técnicas
 
-## 1. Estructura de carpetas y patrón de diseño
+## 1. ¿Por qué elegí la estructura de carpetas y el patrón de diseño que usé?
 
-Elegí **Page Object Model (POM)** con separación por responsabilidad: `pages/`
-(interacción con la UI), `tests/` (comportamiento esperado), `utils/` (lógica
-reutilizable como el ordenamiento y el cliente HTTP), `fixtures/` (datos y
-fixtures) y `config/` (única fuente de variables de entorno). El objetivo es que
-un test se lea como una descripción del negocio y que un cambio de selector o de
-URL impacte un solo archivo.
+Elegí trabajar con **Page Object Model (POM)** porque era uno de los requisitos del reto y porque es un patrón con el que ya he trabajado en proyectos de automatización.
 
-Consideré dos alternativas. **Screenplay** (actors/tasks/abilities): más
-expresivo y escalable, pero añade una curva de aprendizaje que no se justifica
-para un flujo único; encarece el onboarding del equipo. **Tests planos sin POM**:
-más rápidos de escribir al inicio, pero la duplicación de selectores los vuelve
-inmantenibles apenas crece la suite. POM es el punto medio que el equipo entiende
-de inmediato y escala razonablemente.
+La idea fue mantener una estructura simple donde cada carpeta tenga una responsabilidad clara: los **Page Objects** contienen las interacciones con la aplicación, los **tests** describen los escenarios, las **fixtures** preparan el contexto necesario y la configuración queda centralizada. Esto hace que el proyecto sea más fácil de leer y, sobre todo, de mantener.
 
-## 2. Escalar a 200+ tests
+Como alternativa pude haber implementado toda la lógica directamente en los tests. Para un proyecto pequeño funciona, pero cuando empiezan a crecer los escenarios se termina duplicando código y cualquier cambio en la interfaz obliga a modificar varios archivos. La única desventaja de POM es que requiere crear más clases al inicio, pero considero que ese esfuerzo se compensa cuando el proyecto empieza a crecer.
 
-1. **Estado de sesión reutilizable**: guardar el login con `storageState` una
-   vez y reutilizarlo, evitando repetir el flujo de autenticación en cada test
-   (ahorra minutos a escala).
-2. **Sharding + paralelismo**: dividir la ejecución con `--shard` en una matriz
-   de CI y agrupar por dominio funcional (checkout, cuenta, catálogo) usando
-   `@tag`, para poder correr subconjuntos (smoke vs. regresión).
+## 2. ¿Qué agregaría o cambiaría si la suite creciera a más de 200 pruebas?
 
-Complementaría con capa de servicios/API para precondiciones (crear datos vía
-API en lugar de UI) y una convención estricta de nombres/tags para filtrar.
+Lo primero sería dividir la ejecución utilizando el paralelismo de Playwright para aprovechar mejor los runners del pipeline. También organizaría los escenarios con etiquetas como **smoke**, **regression** o **critical**, de forma que cada pipeline ejecute únicamente las pruebas que realmente necesita.
 
-## 3. Test data con múltiples roles (admin, cliente, operador)
+Además, intentaría preparar las precondiciones por API cuando sea posible, en lugar de hacerlo desde la interfaz. Esto reduce el tiempo de ejecución y hace que las pruebas sean más estables. El reto está en mantener una buena organización de la suite para que esa estrategia siga siendo fácil de administrar.
 
-Modelaría los usuarios como datos, no como código: un catálogo de roles
-(`fixtures/roles`) donde cada rol resuelve sus credenciales desde variables de
-entorno/Secrets (nunca hardcodeadas). Expondría una **fixture parametrizada por
-rol** que provee una sesión ya autenticada (`storageState` por rol), de modo que
-el test declare "como admin…" y reciba el contexto correcto. Para datos
-transaccionales, usaría factories/builders que generen datos frescos por test y
-limpien al final, garantizando aislamiento y evitando dependencias entre pruebas.
+## 3. ¿Cómo manejaría los datos de prueba si existieran varios roles (admin, cliente y operador)?
 
-## 4. Pipeline por debajo de 3 minutos
+Evitaría dejar usuarios o contraseñas dentro del código. Las credenciales las manejaría mediante variables de entorno.
 
-- **Cachear** `~/.npm` y los navegadores de Playwright para eliminar
-  reinstalaciones en cada corrida.
-- **Paralelizar con `--shard`** en varios runners y luego `merge-reports` para
-  un reporte HTML único.
-- **Instalar solo el navegador necesario** (`playwright install chromium`) en vez
-  de todos, y correr la suite de integración (sin browser) como job separado y
-  veloz que da feedback temprano.
-- Priorizar un **job de smoke** con los tests críticos marcados por tag para el
-  feedback inicial, dejando la regresión completa en paralelo.
+Además, crearía una **fixture** que reciba el rol con el que necesita trabajar el escenario y entregue una sesión autenticada utilizando **storageState**. Así cada prueba solo indica el tipo de usuario que requiere y no tiene que repetir el proceso de login. Si los datos cambian durante la ejecución, generaría información nueva para evitar dependencias entre pruebas.
 
-**Trade-off:** el sharding reduce el tiempo de reloj pero consume más minutos de
-runner y añade complejidad (merge de reportes); se justifica cuando el tiempo de
-feedback es crítico para el equipo.
+## 4. ¿Qué haría diferente en el pipeline si el tiempo total de ejecución debiera mantenerse por debajo de 3 minutos?
+
+Primero, reutilizaría la caché de dependencias y de los navegadores para no instalarlos en cada ejecución. Después distribuiría los tests en paralelo entre varios runners para aprovechar mejor la infraestructura. Finalmente, separaría las pruebas rápidas de las más pesadas, ejecutando primero un conjunto pequeño de pruebas críticas (**smoke**) para obtener una validación temprana.
+
+La desventaja es que el pipeline se vuelve un poco más complejo y puede requerir más recursos de infraestructura, pero en proyectos grandes normalmente vale la pena porque el equipo recibe retroalimentación mucho más rápido.
+
