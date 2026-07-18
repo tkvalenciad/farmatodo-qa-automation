@@ -1,69 +1,92 @@
 # Farmatodo — QA Automation Framework
 
-Framework de automatización de pruebas construido con **Playwright + TypeScript**, que cubre:
+Este proyecto implementa un framework de automatización con **Playwright + TypeScript** para cubrir dos escenarios principales:
 
-- **Prueba de integración** contra la [PokéAPI](https://pokeapi.co/) (cadena de evoluciones de un Pokémon).
-- **Prueba E2E** del flujo completo de compra en [SauceDemo](https://www.saucedemo.com).
-- **Pipeline CI/CD** con GitHub Actions.
+- **Prueba de integración** sobre la PokéAPI para obtener y validar la cadena de evolución de un Pokémon.
+- **Prueba End-to-End (E2E)** del flujo completo de compra en SauceDemo.
 
-El diseño sigue el patrón **Page Object Model (POM)**, con configuración por ambientes, timeouts y reintentos centralizados, y selectores resilientes.
+Además, incluye una **pipeline de CI/CD con GitHub Actions** para ejecutar las pruebas automáticamente en cada cambio al repositorio.
+
+El proyecto sigue el patrón **Page Object Model (POM)** para mantener el código organizado y facilitar su mantenimiento. La configuración de ambientes, timeouts y reintentos está centralizada, y se utilizan selectores resilientes para reducir la flakiness de las pruebas.
 
 ---
 
-## Requisitos previos
+# Requisitos previos
 
-| Herramienta | Versión recomendada |
-| ----------- | ------------------- |
+
+| Herramienta | Versión recomendada   |
+| ----------- | --------------------- |
 | Node.js     | >= 18 (probado en 20) |
-| npm         | >= 9                |
+| npm         | >= 9                  |
+
 
 ---
 
-## Puesta en marcha (< 5 minutos)
+# Primeros pasos
 
-```bash
-# 1. Instalar dependencias
-npm ci        # o "npm install" si no existe package-lock.json todavía
+1. Instalar las dependencias:
 
-# 2. Instalar los navegadores de Playwright
+```
+npm ci
+```
+
+```
+npm install
+```
+
+1.  Instalar los navegadores de Playwright: 
+
+```
 npx playwright install
+```
 
-# 3. Crear tu archivo de entorno a partir de la plantilla
-cp .env.example .env          # En Windows PowerShell: Copy-Item .env.example .env
+1.  Crear el archivo de variables de entorno: 
 
-# 4. Ejecutar toda la suite
+```
+cp .env.example .env
+```
+
+En Windows PowerShell:
+
+```
+Copy-Item .env.example .env
+```
+
+1.  Ejecutar toda la suite: 
+
+```
 npm test
 ```
 
-> Los valores por defecto de `.env.example` ya apuntan a los sitios públicos de la
-> prueba, por lo que el proyecto funciona sin cambios. Ajusta `.env` si necesitas
-> otro ambiente o credenciales.
+Los valores incluidos en `.env.example` ya apuntan a los ambientes públicos utilizados en la prueba, por lo que el proyecto puede ejecutarse sin realizar cambios adicionales.
 
 ---
 
-## Comandos disponibles
+# Scripts disponibles
 
-| Comando                    | Descripción                                             |
-| -------------------------- | ------------------------------------------------------- |
-| `npm test`                 | Ejecuta ambas suites (integración + E2E).               |
-| `npm run test:integration` | Ejecuta solo la suite de integración (PokéAPI).         |
-| `npm run test:e2e`         | Ejecuta solo la suite E2E (SauceDemo).                  |
-| `npm run test:headed`      | Ejecuta la E2E con navegador visible.                   |
-| `npm run test:ui`          | Abre el modo UI interactivo de Playwright.              |
-| `npm run report`           | Abre el último reporte HTML generado.                   |
-| `npm run typecheck`        | Verifica los tipos de TypeScript sin emitir archivos.   |
-| `npm run lint`             | Ejecuta ESLint sobre el código.                         |
+
+| Comando                    | Descripción                                                |
+| -------------------------- | ---------------------------------------------------------- |
+| `npm test`                 | Ejecuta todas las pruebas.                                 |
+| `npm run test:integration` | Ejecuta únicamente la prueba de integración de la PokéAPI. |
+| `npm run test:e2e`         | Ejecuta únicamente la prueba E2E de SauceDemo.             |
+| `npm run test:headed`      | Ejecuta la prueba E2E mostrando el navegador.              |
+| `npm run test:ui`          | Abre el modo interactivo de Playwright.                    |
+| `npm run report`           | Abre el último reporte HTML generado.                      |
+| `npm run typecheck`        | Valida los tipos de TypeScript.                            |
+| `npm run lint`             | Ejecuta ESLint sobre el proyecto.                          |
+
 
 ---
 
-## Estructura del proyecto
+# Estructura del proyecto
 
 ```
 .
 ├── .github/workflows/tests.yml   # Pipeline CI/CD (push + PR a main)
 ├── config/
 │   └── env.ts                    # Carga y validación central de variables de entorno
-├── pages/                        # Page Objects (un archivo por pantalla del flujo E2E)
+├── pages/                        # Page Objects (una pantalla del flujo E2E por archivo)
 │   ├── BasePage.ts
 │   ├── LoginPage.ts
 │   ├── InventoryPage.ts
@@ -73,7 +96,7 @@ npm test
 │   └── CheckoutCompletePage.ts
 ├── utils/                        # Helpers reutilizables
 │   ├── sorting.ts                # Merge Sort propio (sin .sort() nativo)
-│   └── api/                      # Cliente + modelos + errores de la PokéAPI
+│   └── api/                      # Cliente, modelos y errores de la PokéAPI
 │       ├── pokeApiClient.ts
 │       ├── pokemon.types.ts
 │       └── errors.ts
@@ -92,58 +115,61 @@ npm test
 
 ---
 
-## Configuración por ambientes
+# Configuración por ambientes
 
-Toda la configuración vive en variables de entorno (ver `.env.example`). El
-archivo `config/env.ts` es el **único** punto que lee `process.env`; el resto del
-código consume el objeto `env` tipado. Así no hay URLs ni credenciales
-hardcodeadas y cambiar de `staging` a `prod` es solo cambiar `TEST_ENV`.
+Toda la configuración del proyecto se maneja mediante variables de entorno (ver `.env.example`).
 
-| Variable              | Descripción                                             |
-| --------------------- | ------------------------------------------------------- |
-| `TEST_ENV`            | Ambiente activo: `staging` \| `prod`.                   |
-| `E2E_BASE_URL_PROD`   | URL base del sitio E2E en producción.                   |
-| `E2E_BASE_URL_STAGING`| URL base del sitio E2E en staging.                      |
-| `SAUCE_USERNAME`      | Usuario para el login de SauceDemo.                     |
-| `SAUCE_PASSWORD`      | Contraseña para el login de SauceDemo.                  |
-| `POKEAPI_BASE_URL`    | URL base de la PokéAPI.                                 |
-| `POKEMON_UNDER_TEST`  | Pokémon inicial de la cadena a validar (ej. `squirtle`).|
+El archivo `config/env.ts` es el único encargado de leer `process.env`; el resto del proyecto consume un objeto `env` tipado. De esta forma se evita dejar URLs o credenciales dentro del código y cambiar de ambiente solo requiere modificar la variable `TEST_ENV`.
 
 ---
 
-## Resiliencia y manejo de flakiness
+# Decisiones de diseño
 
-- **Reintentos por ambiente**: `retries: 2` en CI y `retries: 0` en local
-  (definido en `playwright.config.ts` según la variable `CI`).
-- **Timeouts centralizados**: un único lugar (`playwright.config.ts`) define el
-  timeout global de test, de `expect`, de acciones y de navegación. No hay
-  timeouts inline en los specs.
-- **Errores de API accionables**: si un endpoint de la PokéAPI no responde 200,
-  el test falla con un mensaje que incluye la URL exacta, el código HTTP y el
-  paso en ejecución (ver `utils/api/errors.ts`).
-- **Selectores resilientes**: la E2E usa `data-test` (vía `getByTestId`), roles
-  ARIA y texto visible, evitando clases CSS o posiciones del DOM.
+Durante el desarrollo del proyecto se tomaron las siguientes decisiones:
+
+-  Se implementó **Page Object Model (POM)** para separar la lógica de las páginas de los casos de prueba y facilitar el mantenimiento. 
+-  Se creó un **cliente específico para la PokéAPI**, centralizando las llamadas HTTP, el manejo de errores y las validaciones de las respuestas. 
+-  Se implementó **Merge Sort** para cumplir el requisito de ordenar la información sin utilizar `Array.sort()`. 
+-  Toda la configuración se centralizó mediante variables de entorno para facilitar el cambio entre ambientes. 
+-  Los timeouts, reintentos y configuración general se manejan desde `playwright.config.ts`, evitando configuraciones repetidas en los tests. 
 
 ---
 
-## CI/CD (GitHub Actions)
+# Resiliencia y manejo de flakiness
 
-El workflow `.github/workflows/tests.yml`:
+Para reducir la inestabilidad de las pruebas se implementaron las siguientes prácticas:
 
-1. Se dispara en `push` a `main` y en Pull Requests hacia `main`.
-2. Instala dependencias con `npm ci` (reproducible) y los navegadores de Playwright.
-3. Ejecuta ambas suites; si algo falla, el job termina con exit code ≠ 0.
-4. Publica el **reporte HTML** como artefacto descargable (`playwright-report`).
-5. Usa **GitHub Secrets** para las credenciales sensibles.
+- **Reintentos por ambiente:** `retries: 2` en CI y `retries: 0` en ejecución local. 
+- **Timeouts centralizados:** definidos únicamente en `playwright.config.ts`. 
+- **Manejo de errores de la API:** cuando un endpoint de la PokéAPI no responde con HTTP 200, el test falla mostrando la URL consultada, el código recibido y el paso donde ocurrió el error. 
+- **Selectores resilientes:** las pruebas E2E utilizan `data-test`, roles ARIA y texto visible, evitando depender de clases CSS o posiciones del DOM. 
 
-### Secrets requeridos en el repositorio
+---
 
-En `Settings → Secrets and variables → Actions`, crear:
+# Integración continua (CI/CD)
 
-| Secret           | Valor sugerido    |
-| ---------------- | ----------------- |
-| `SAUCE_USERNAME` | `standard_user`   |
-| `SAUCE_PASSWORD` | `secret_sauce`    |
+El workflow ubicado en `.github/workflows/tests.yml` realiza las siguientes tareas:
 
-> El reporte descargable queda disponible en cada ejecución dentro de la pestaña
-> **Actions** del repositorio.
+-  Se ejecuta automáticamente en cada **Push** y **Pull Request** hacia la rama `main`. 
+-  Instala las dependencias con `npm ci`. 
+-  Instala los navegadores de Playwright. 
+-  Ejecuta toda la suite de pruebas. 
+-  Si alguna prueba falla, el pipeline se marca como fallido. 
+-  Publica el reporte HTML generado por Playwright como un artefacto descargable. 
+-  Utiliza **GitHub Secrets** para manejar las credenciales sensibles. 
+
+---
+
+# Secrets requeridos
+
+En **Settings → Secrets and variables → Actions** deben configurarse los siguientes secretos:
+
+
+| Secret         | Valor         |
+| -------------- | ------------- |
+| SAUCE_USERNAME | standard_user |
+| SAUCE_PASSWORD | secret_sauce  |
+
+
+El reporte HTML generado queda disponible como artefacto en cada ejecución del workflow.
+
