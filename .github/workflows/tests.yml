@@ -1,6 +1,5 @@
 name: Tests
 
-# Se dispara automáticamente en cada push a main y en cada Pull Request hacia main.
 on:
   push:
     branches: [main]
@@ -14,14 +13,10 @@ jobs:
     timeout-minutes: 20
 
     env:
-      # GitHub Actions expone CI=true automáticamente; se deja explícito para
-      # que la lógica de reintentos (retries: 2 en CI) sea evidente.
       CI: true
-      # Configuración de ambiente NO sensible: se puede versionar sin riesgo.
       TEST_ENV: prod
       E2E_BASE_URL_PROD: https://www.saucedemo.com
       POKEAPI_BASE_URL: https://pokeapi.co/api/v2
-      # Credenciales sensibles: SIEMPRE desde GitHub Secrets, nunca en texto plano.
       SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
       SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}
 
@@ -41,14 +36,9 @@ jobs:
       - name: Instalar navegadores de Playwright
         run: npx playwright install --with-deps
 
-      # Ejecuta ambas suites (proyectos "integration" y "e2e") en una sola
-      # invocación. Playwright devuelve exit code != 0 si algún test falla, lo
-      # que hace fallar el job y deja los logs del error visibles en la consola.
       - name: Ejecutar suite de pruebas (integración + E2E)
         run: npx playwright test
 
-      # El reporte HTML se publica siempre (pase o falle la suite) como artefacto
-      # descargable desde la pestaña Actions.
       - name: Publicar reporte HTML de Playwright
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
