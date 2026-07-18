@@ -6,13 +6,6 @@ import { CheckoutInformationPage } from '../pages/CheckoutInformationPage';
 import { CheckoutOverviewPage } from '../pages/CheckoutOverviewPage';
 import { CheckoutCompletePage } from '../pages/CheckoutCompletePage';
 
-/**
- * Fixtures de Playwright que inyectan los Page Objects ya construidos.
- *
- * Los tests declaran los objetos que necesitan y Playwright se encarga de
- * instanciarlos con la `page` correcta. Esto elimina el `new XxxPage(page)`
- * repetido en cada test y mantiene los specs enfocados en el comportamiento.
- */
 interface Pages {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;

@@ -1,9 +1,3 @@
-/**
- * Error específico para fallos de la PokéAPI.
- *
- * Produce un mensaje accionable (no un stack trace genérico de Playwright)
- * que incluye el paso en ejecución, la URL exacta y el código HTTP recibido.
- */
 export class ApiError extends Error {
   constructor(
     readonly url: string,

@@ -1,16 +1,12 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
-/** Datos del cliente requeridos en el checkout. */
 export interface CustomerInfo {
   firstName: string;
   lastName: string;
   postalCode: string;
 }
 
-/**
- * Page Object del primer paso del checkout (información del comprador).
- */
 export class CheckoutInformationPage extends BasePage {
   private readonly firstNameInput: Locator;
   private readonly lastNameInput: Locator;
@@ -25,7 +21,6 @@ export class CheckoutInformationPage extends BasePage {
     this.continueButton = page.getByTestId('continue');
   }
 
-  /** Completa el formulario y continúa al resumen de la orden. */
   async fillAndContinue(customer: CustomerInfo): Promise<void> {
     await expect(this.firstNameInput).toBeVisible();
     await this.firstNameInput.fill(customer.firstName);

@@ -1,10 +1,3 @@
-/**
- * Logger mínimo y consistente para la salida de los tests.
- *
- * Centraliza el formato de los mensajes (prefijo + timestamp) para que la
- * salida en consola y en los logs del pipeline sea uniforme y legible.
- */
-
 type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
 function emit(level: LogLevel, message: string): void {
