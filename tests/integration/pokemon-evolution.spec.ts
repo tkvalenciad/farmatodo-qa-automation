@@ -26,12 +26,19 @@ test.describe('Integración PokéAPI — cadena de evoluciones', () => {
     const chainSpecies = flattenEvolutionChain(evolutionChain.chain);
     expect(chainSpecies.length).toBeGreaterThan(0);
 
-    const evolutions: PokemonEvolution[] = [];
-    for (const member of chainSpecies) {
-      const detail = await test.step(`GET /pokemon/${member.name} (peso)`, () =>
-        client.getPokemon(member.name, `Consultar el peso de "${member.name}"`));
-      evolutions.push({ name: detail.name, weight: detail.weight });
-    }
+    const evolutions: PokemonEvolution[] = await test.step(
+      'Obtener el peso de cada especie de la cadena',
+      () =>
+        Promise.all(
+          chainSpecies.map(async (member): Promise<PokemonEvolution> => {
+            const detail =
+              member.name === basePokemon.name
+                ? basePokemon
+                : await client.getPokemon(member.name, `Consultar el peso de "${member.name}"`);
+            return { name: detail.name, weight: detail.weight };
+          }),
+        ),
+    );
 
     const sorted = mergeSort(evolutions, (a, b) => compareStringsAsc(a.name, b.name));
 
